@@ -1,6 +1,6 @@
 {
   "name": "@digitaldefiance/branded-enum",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Runtime-identifiable enum-like types for TypeScript with zero runtime overhead",
   "license": "MIT",
   "type": "module",
@@ -39,7 +39,8 @@
     "build": "nx build branded-enum",
     "build:examples": "nx build-examples branded-enum",
     "test": "nx test branded-enum",
-    "lint": "nx lint branded-enum"
+    "lint": "nx lint branded-enum",
+    "publish:public": "yarn build && npm publish --access public"
   },
   "devDependencies": {
     "@nx/jest": "22.4.2",
@@ -68,19 +69,24 @@
     "sourceRoot": "src",
     "targets": {
       "build": {
-        "executor": "@nx/js:swc",
-        "outputs": ["{options.outputPath}"],
+        "executor": "nx:run-commands",
+        "outputs": [
+          "{projectRoot}/dist"
+        ],
         "options": {
-          "outputPath": "dist",
-          "main": "src/index.ts",
-          "tsConfig": "tsconfig.lib.json",
-          "skipTypeCheck": true,
-          "stripLeadingPaths": true
+          "commands": [
+            "swc src -d dist --config-file .swcrc --strip-leading-paths",
+            "tsc -p tsconfig.lib.json"
+          ],
+          "cwd": "{projectRoot}",
+          "parallel": false
         }
       },
       "test": {
         "executor": "@nx/jest:jest",
-        "outputs": ["{projectRoot}/test-output/jest/coverage"],
+        "outputs": [
+          "{projectRoot}/test-output/jest/coverage"
+        ],
         "options": {
           "jestConfig": "jest.config.cts",
           "passWithNoTests": true
@@ -88,11 +94,24 @@
       },
       "build-examples": {
         "executor": "nx:run-commands",
-        "outputs": ["{projectRoot}/examples/dist"],
+        "outputs": [
+          "{projectRoot}/examples/dist"
+        ],
         "options": {
           "command": "tsc -p examples/tsconfig.json"
         },
-        "dependsOn": ["build"]
+        "dependsOn": [
+          "build"
+        ]
+      },
+      "publish-public": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "npm publish --access public"
+        },
+        "dependsOn": [
+          "build"
+        ]
       }
     }
   },
